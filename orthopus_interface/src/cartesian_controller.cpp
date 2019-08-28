@@ -177,6 +177,18 @@ void CartesianController::dxDesCB(const geometry_msgs::TwistStampedPtr& msg)
       }
       cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
     }
+    for(int i =3; i<6;i++)
+    {
+      if(cartesian_velocity_desired[i] != 0)
+      {
+        ik_->RequestUpdateAxisConstraints(i, 1.0);
+      }
+      else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
+      {
+        ik_->RequestUpdateAxisConstraints(i, 0.0);
+      }
+      cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
+    }
 //     for(int i =3; i<6;i++)
 //     {
 //       if(cartesian_velocity_desired[i] != 0)

@@ -141,12 +141,12 @@ void InverseKinematic::Init(sensor_msgs::JointState& current_joint_state)
   currentPosition(0, 0) = current_pose.position.x;
   currentPosition(1, 0) = current_pose.position.y;
   currentPosition(2, 0) = current_pose.position.z;
-//   currentPosition(3, 0) = current_pose.orientation.x;
-//   currentPosition(4, 0) = current_pose.orientation.y;
-//   currentPosition(5, 0) = current_pose.orientation.z;
-  currentPosition(4, 0) = roll;
-  currentPosition(3, 0) = pitch;
-  currentPosition(5, 0) = yaw;
+  currentPosition(3, 0) = current_pose.orientation.x;
+  currentPosition(4, 0) = current_pose.orientation.y;
+  currentPosition(5, 0) = current_pose.orientation.z;
+//   currentPosition(4, 0) = roll;
+//   currentPosition(3, 0) = pitch;
+//   currentPosition(5, 0) = yaw;
   
   prevPosition = currentPosition;
 
@@ -192,12 +192,12 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
   currentPosition(0, 0) = current_pose.position.x;
   currentPosition(1, 0) = current_pose.position.y;
   currentPosition(2, 0) = current_pose.position.z;
-//   currentPosition(3, 0) = current_pose.orientation.x;
-//   currentPosition(4, 0) = current_pose.orientation.y;
-//   currentPosition(5, 0) = current_pose.orientation.z;
-  currentPosition(4, 0) = roll;
-  currentPosition(3, 0) = pitch;
-  currentPosition(5, 0) = yaw;
+  currentPosition(3, 0) = current_pose.orientation.x;
+  currentPosition(4, 0) = current_pose.orientation.y;
+  currentPosition(5, 0) = current_pose.orientation.z;
+//   currentPosition(4, 0) = roll;
+//   currentPosition(3, 0) = pitch;
+//   currentPosition(5, 0) = yaw;
 
   for(int i=3; i<6;i++)
   {
@@ -246,13 +246,22 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
   // lb < q < ub
   // lb < q0 + dq*T < ub
   // (lb-q0) < dq.T < (ub-q0)
-  xlimit_max = x_max_limit[3];// - currentPosition(3, 0);
-  ylimit_max = x_max_limit[4];// - currentPosition(4, 0);
-  zlimit_max = x_max_limit[5];// - currentPosition(5, 0);
+//   xlimit_max = x_max_limit[3] - currentPosition(3, 0);
+//   ylimit_max = x_max_limit[4] - currentPosition(4, 0);
+//   zlimit_max = x_max_limit[5] - currentPosition(5, 0);
+//   
+//   xlimit_min = x_min_limit[3] - currentPosition(3, 0);
+//   ylimit_min = x_min_limit[4] - currentPosition(4, 0);
+//   zlimit_min = x_min_limit[5] - currentPosition(5, 0);
   
-  xlimit_min = x_min_limit[3];// - currentPosition(3, 0);
-  ylimit_min = x_min_limit[4];// - currentPosition(4, 0);
-  zlimit_min = x_min_limit[5];// - currentPosition(5, 0);
+  xlimit_max = 0.505 - currentPosition(3, 0);
+  ylimit_max = 0.505 - currentPosition(4, 0);
+  zlimit_max = 0.505 - currentPosition(5, 0);
+  
+  xlimit_min = 0.495 - currentPosition(3, 0);
+  ylimit_min = 0.495 - currentPosition(4, 0);
+  zlimit_min = 0.495 - currentPosition(5, 0);
+  
   
   Eigen::Matrix<double, 12, 6, Eigen::RowMajor> A;
   A.topLeftCorner(6, 6) = Eigen::MatrixXd::Identity(6, 6) * CALC_PERIOD;
@@ -264,9 +273,9 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
                    (joints_limits_min[3] - local_joint_state.position[3]),
                    (joints_limits_min[4] - local_joint_state.position[4]),
                    (joints_limits_min[5] - local_joint_state.position[5]),
-                   x_min_limit[0],// - currentPosition(0, 0),
-                   x_min_limit[1],// - currentPosition(1, 0),
-                   x_min_limit[2],// - currentPosition(2, 0),                  
+                   x_min_limit[0] - currentPosition(0, 0),
+                   x_min_limit[1] - currentPosition(1, 0),
+                   x_min_limit[2] - currentPosition(2, 0),                  
 //                    x_min_limit[3] - currentPosition(3, 0),
 //                    x_min_limit[4] - currentPosition(4, 0),
 //                    x_min_limit[5] - currentPosition(5, 0)
@@ -282,9 +291,9 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
                    (joints_limits_max[3] - local_joint_state.position[3]),
                    (joints_limits_max[4] - local_joint_state.position[4]),
                    (joints_limits_max[5] - local_joint_state.position[5]),
-                   x_max_limit[0],// - currentPosition(0, 0),
-                   x_max_limit[1],// - currentPosition(1, 0),
-                   x_max_limit[2],// - currentPosition(2, 0),
+                   x_max_limit[0] - currentPosition(0, 0),
+                   x_max_limit[1] - currentPosition(1, 0),
+                   x_max_limit[2] - currentPosition(2, 0),
 //                    x_max_limit[3] - currentPosition(3, 0),
 //                    x_max_limit[4] - currentPosition(4, 0),
 //                    x_max_limit[5] - currentPosition(5, 0)
@@ -294,15 +303,6 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
    zlimit_max,
     
   };
-
-//   ROS_DEBUG_STREAM("xlimit_max = " << xlimit_max );
-//   ROS_DEBUG_STREAM("xlimit_min = " << xlimit_min );
-//   
-//   ROS_DEBUG_STREAM("ylimit_max = " << ylimit_max );
-//   ROS_DEBUG_STREAM("ylimit_min = " << ylimit_min );
-//   
-//   ROS_DEBUG_STREAM("zlimit_max = " << zlimit_max );
-//   ROS_DEBUG_STREAM("zlimit_min = " << zlimit_min );
 
   ROS_DEBUG_STREAM("A = \n" << A << "\n");
     ROS_DEBUG_STREAM("currentPosition = {" << currentPosition(0, 0) << ", " << currentPosition(1, 0) << ", " << currentPosition(2, 0) << ", " << currentPosition(3, 0) << ", "
@@ -408,10 +408,10 @@ void InverseKinematic::UpdateAxisConstraints()
     if(request_update_constraint[i])
     {
       ROS_WARN_STREAM("Update axis " << i << " constraints with new tolerance of " << request_update_constraint_tolerance[i] << " m.");
-      if(i<6)
+      if(i<3)
       {
-          x_min_limit[i] = /*currentPosition(i, 0) */- request_update_constraint_tolerance[i];
-          x_max_limit[i] = /*currentPosition(i, 0)*/ + request_update_constraint_tolerance[i];
+          x_min_limit[i] = currentPosition(i, 0) - request_update_constraint_tolerance[i];
+          x_max_limit[i] = currentPosition(i, 0) + request_update_constraint_tolerance[i];
       }
       else
       {
