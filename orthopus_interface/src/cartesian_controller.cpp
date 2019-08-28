@@ -177,11 +177,11 @@ void CartesianController::dxDesCB(const geometry_msgs::TwistStampedPtr& msg)
       }
       cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
     }
-    for(int i =3; i<6;i++)
-    {
-      if(cartesian_velocity_desired[i] != 0)
-      {
-//         if(i==3)
+//     for(int i =3; i<6;i++)
+//     {
+//       if(cartesian_velocity_desired[i] != 0)
+//       {
+//         if/*(i==3)
 //         {
 //           ik_->RequestUpdateAxisConstraints(5,1.0);
 //         }
@@ -192,27 +192,27 @@ void CartesianController::dxDesCB(const geometry_msgs::TwistStampedPtr& msg)
 //         else if(i==5)
 //         {
 //           ik_->RequestUpdateAxisConstraints(4,1.0);
-//         }
-        ik_->RequestUpdateAxisConstraints(i,1.0);
-      }
-      else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
-      {
-//         if(i==3)
-//         {
-//         ik_->RequestUpdateAxisConstraints(5, 0.0);
-//         }
-//         else if(i==4)
-//         {
-//         ik_->RequestUpdateAxisConstraints(3, 0.0);
-//         }
-//         else if(i==5)
-//         {
-//         ik_->RequestUpdateAxisConstraints(4, 0.0);
-//         }
-        ik_->RequestUpdateAxisConstraints(i, 0.0);
-      }
-      cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
-    }
+//         }*/
+//         ik_->RequestUpdateAxisConstraints(i,1.0);
+//       }
+//       else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
+//       {
+// //         if(i==3)
+// //         {
+// //         ik_->RequestUpdateAxisConstraints(5, 0.0);
+// //         }
+// //         else if(i==4)
+// //         {
+// //         ik_->RequestUpdateAxisConstraints(3, 0.0);
+// //         }
+// //         else if(i==5)
+// //         {
+// //         ik_->RequestUpdateAxisConstraints(4, 0.0);
+// //         }
+//         ik_->RequestUpdateAxisConstraints(i, 0.0);
+//       }
+//       cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
+//     }
   }
 }
 

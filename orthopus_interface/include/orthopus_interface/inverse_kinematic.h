@@ -43,7 +43,9 @@ public:
                                double (&cartesian_velocity_desired)[6]);  // TODO should not use magic number
 
   void UpdateAxisConstraints();
-void RequestUpdateAxisConstraints(int axis, double tolerance);
+  void RequestUpdateAxisConstraints(int axis);
+  void RequestUpdateAxisConstraints(int axis, double tolerance);
+
 
 protected:
 private:
@@ -80,6 +82,7 @@ private:
   double x_max_limit[6];
 
   Vector6d currentPosition;
+  Vector6d prevPosition;
   Vector6d desiredPosition;
   Vector6d cartesianPosition; 
 
@@ -93,6 +96,13 @@ private:
 bool request_update_constraint[6];
 double request_update_constraint_tolerance[6];
     
+
+  double xlimit_max;
+  double ylimit_max;
+  double zlimit_max;
+  double xlimit_min;
+  double ylimit_min;
+  double zlimit_min;
 };
 }
 #endif

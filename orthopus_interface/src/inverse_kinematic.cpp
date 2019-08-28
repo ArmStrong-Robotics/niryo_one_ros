@@ -125,7 +125,7 @@ void InverseKinematic::Init(sensor_msgs::JointState& current_joint_state)
 {
   sensor_msgs::JointState local_joint_state = current_joint_state;
   kinematic_state->setVariableValues(local_joint_state);
-
+  
   const Eigen::Affine3d& end_effector_state =
       kinematic_state->getGlobalLinkTransform("hand_link");  // TODO Add configuration parameter
   tf::poseEigenToMsg(end_effector_state, current_pose);  
@@ -144,10 +144,12 @@ void InverseKinematic::Init(sensor_msgs::JointState& current_joint_state)
 //   currentPosition(3, 0) = current_pose.orientation.x;
 //   currentPosition(4, 0) = current_pose.orientation.y;
 //   currentPosition(5, 0) = current_pose.orientation.z;
-  currentPosition(3, 0) = roll;
-  currentPosition(4, 0) = pitch;
+  currentPosition(4, 0) = roll;
+  currentPosition(3, 0) = pitch;
   currentPosition(5, 0) = yaw;
   
+  prevPosition = currentPosition;
+
   cartesianPosition(0, 0) = 0.0;
   cartesianPosition(1, 0) = 0.0;
   cartesianPosition(2, 0) = 0.0;
@@ -170,7 +172,11 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
   ROS_WARN_STREAM("InverseKinematic::ResolveInverseKinematic");
   sensor_msgs::JointState local_joint_state = current_joint_state;
   kinematic_state->setVariableValues(local_joint_state);
-
+//   for (std::size_t i = 0; i < local_joint_state.name.size(); ++i)
+//   {
+//     local_joint_state.position[i] = joint_position_command[i];
+//   }
+  
   const Eigen::Affine3d& end_effector_state =
       kinematic_state->getGlobalLinkTransform("hand_link");  // TODO Add configuration parameter
   tf::poseEigenToMsg(end_effector_state, current_pose);  
@@ -189,11 +195,21 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
 //   currentPosition(3, 0) = current_pose.orientation.x;
 //   currentPosition(4, 0) = current_pose.orientation.y;
 //   currentPosition(5, 0) = current_pose.orientation.z;
-  currentPosition(3, 0) = roll;
-  currentPosition(4, 0) = pitch;
+  currentPosition(4, 0) = roll;
+  currentPosition(3, 0) = pitch;
   currentPosition(5, 0) = yaw;
 
+  for(int i=3; i<6;i++)
+  {
+    ROS_DEBUG_STREAM("delta=" << currentPosition(i, 0) - prevPosition(i, 0) <<"");
 
+    if(std::abs(currentPosition(i, 0) - prevPosition(i, 0)) >= M_PI/2)
+    {
+      ROS_ERROR_STREAM("==============> Euler jump detected !!!! delta=" << currentPosition(i, 0) - prevPosition(i, 0) <<"");
+      RequestUpdateAxisConstraints(i);
+    }
+  }
+  prevPosition = currentPosition;
   
   UpdateAxisConstraints();
   
@@ -230,13 +246,13 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
   // lb < q < ub
   // lb < q0 + dq*T < ub
   // (lb-q0) < dq.T < (ub-q0)
-  double xlimit_max = x_max_limit[3] - currentPosition(3, 0);
-  double ylimit_max = x_max_limit[4] - currentPosition(4, 0);
-  double zlimit_max = x_max_limit[5] - currentPosition(5, 0);
-  double xlimit_min = x_min_limit[3] - currentPosition(3, 0);
-  double ylimit_min = x_min_limit[4] - currentPosition(4, 0);
-  double zlimit_min = x_min_limit[5] - currentPosition(5, 0);
+  xlimit_max = x_max_limit[3];// - currentPosition(3, 0);
+  ylimit_max = x_max_limit[4];// - currentPosition(4, 0);
+  zlimit_max = x_max_limit[5];// - currentPosition(5, 0);
   
+  xlimit_min = x_min_limit[3];// - currentPosition(3, 0);
+  ylimit_min = x_min_limit[4];// - currentPosition(4, 0);
+  zlimit_min = x_min_limit[5];// - currentPosition(5, 0);
   
   Eigen::Matrix<double, 12, 6, Eigen::RowMajor> A;
   A.topLeftCorner(6, 6) = Eigen::MatrixXd::Identity(6, 6) * CALC_PERIOD;
@@ -248,12 +264,16 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
                    (joints_limits_min[3] - local_joint_state.position[3]),
                    (joints_limits_min[4] - local_joint_state.position[4]),
                    (joints_limits_min[5] - local_joint_state.position[5]),
-                   x_min_limit[0] - currentPosition(0, 0),
-                   x_min_limit[1] - currentPosition(1, 0),
-                   x_min_limit[2] - currentPosition(2, 0),                  
-                   x_min_limit[3],// - currentPosition(3, 0),
-                   x_min_limit[4],// - currentPosition(4, 0),
-                   x_min_limit[5],// - currentPosition(5, 0)
+                   x_min_limit[0],// - currentPosition(0, 0),
+                   x_min_limit[1],// - currentPosition(1, 0),
+                   x_min_limit[2],// - currentPosition(2, 0),                  
+//                    x_min_limit[3] - currentPosition(3, 0),
+//                    x_min_limit[4] - currentPosition(4, 0),
+//                    x_min_limit[5] - currentPosition(5, 0)
+
+   xlimit_min,
+   ylimit_min,
+   zlimit_min,
     
   };
   double ubA[] = { (joints_limits_max[0] - local_joint_state.position[0]),
@@ -262,21 +282,27 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
                    (joints_limits_max[3] - local_joint_state.position[3]),
                    (joints_limits_max[4] - local_joint_state.position[4]),
                    (joints_limits_max[5] - local_joint_state.position[5]),
-                   x_max_limit[0] - currentPosition(0, 0),
-                   x_max_limit[1] - currentPosition(1, 0),
-                   x_max_limit[2] - currentPosition(2, 0),
-                   x_max_limit[3],// - currentPosition(3, 0),
-                   x_max_limit[4],// - currentPosition(4, 0),
-                   x_max_limit[5],// - currentPosition(5, 0)
+                   x_max_limit[0],// - currentPosition(0, 0),
+                   x_max_limit[1],// - currentPosition(1, 0),
+                   x_max_limit[2],// - currentPosition(2, 0),
+//                    x_max_limit[3] - currentPosition(3, 0),
+//                    x_max_limit[4] - currentPosition(4, 0),
+//                    x_max_limit[5] - currentPosition(5, 0)
+
+   xlimit_max,
+   ylimit_max,
+   zlimit_max,
     
   };
 
-  ROS_DEBUG_STREAM("xlimit_max = " << xlimit_max );
-  ROS_DEBUG_STREAM("xlimit_min = " << xlimit_min );
-  ROS_DEBUG_STREAM("ylimit_max = " << ylimit_max );
-  ROS_DEBUG_STREAM("ylimit_min = " << ylimit_min );
-  ROS_DEBUG_STREAM("zlimit_max = " << zlimit_max );
-  ROS_DEBUG_STREAM("zlimit_min = " << zlimit_min );
+//   ROS_DEBUG_STREAM("xlimit_max = " << xlimit_max );
+//   ROS_DEBUG_STREAM("xlimit_min = " << xlimit_min );
+//   
+//   ROS_DEBUG_STREAM("ylimit_max = " << ylimit_max );
+//   ROS_DEBUG_STREAM("ylimit_min = " << ylimit_min );
+//   
+//   ROS_DEBUG_STREAM("zlimit_max = " << zlimit_max );
+//   ROS_DEBUG_STREAM("zlimit_min = " << zlimit_min );
 
   ROS_DEBUG_STREAM("A = \n" << A << "\n");
     ROS_DEBUG_STREAM("currentPosition = {" << currentPosition(0, 0) << ", " << currentPosition(1, 0) << ", " << currentPosition(2, 0) << ", " << currentPosition(3, 0) << ", "
@@ -287,6 +313,11 @@ void InverseKinematic::ResolveInverseKinematic(double (&joint_position_command)[
                                << x_min_limit[4] << ", " << x_min_limit[5] << "}");
   ROS_DEBUG_STREAM("x_max_limit = {" << x_max_limit[0] << ", " << x_max_limit[1] << ", " << x_max_limit[2] << ", " << x_max_limit[3] << ", "
                                << x_max_limit[4] << ", " << x_max_limit[5] << "}");
+  
+  ROS_DEBUG_STREAM("lbA = {" << lbA[6] << ", " << lbA[7] << ", " << lbA[8] << ", " << lbA[9] << ", "
+                               << lbA[10] << ", " << lbA[11] << "}");  
+  ROS_DEBUG_STREAM("ubA = {" << ubA[6] << ", " << ubA[7] << ", " << ubA[8] << ", " << ubA[9] << ", "
+                               << ubA[10] << ", " << ubA[11] << "}");
 
   // Solve first QP.
   qpOASES::real_t xOpt[6];
@@ -377,10 +408,10 @@ void InverseKinematic::UpdateAxisConstraints()
     if(request_update_constraint[i])
     {
       ROS_WARN_STREAM("Update axis " << i << " constraints with new tolerance of " << request_update_constraint_tolerance[i] << " m.");
-      if(i<3)
+      if(i<6)
       {
-          x_min_limit[i] = currentPosition(i, 0) - request_update_constraint_tolerance[i];
-          x_max_limit[i] = currentPosition(i, 0) + request_update_constraint_tolerance[i];
+          x_min_limit[i] = /*currentPosition(i, 0) */- request_update_constraint_tolerance[i];
+          x_max_limit[i] = /*currentPosition(i, 0)*/ + request_update_constraint_tolerance[i];
       }
       else
       {
@@ -392,9 +423,15 @@ void InverseKinematic::UpdateAxisConstraints()
   }
 }
 
+// Keep last set tolerance
+void InverseKinematic::RequestUpdateAxisConstraints(int axis)
+{
+  ROS_WARN_STREAM("Update axis " << axis << " constraints with the last tolerance set (" << request_update_constraint_tolerance[axis] << ")");
+  request_update_constraint[axis] = true;
+}
 void InverseKinematic::RequestUpdateAxisConstraints(int axis, double tolerance)
 {
-  ROS_WARN_STREAM("Update axis " << axis << " constraints with new tolerance of " << tolerance << " m.");
+  ROS_WARN_STREAM("Update axis " << axis << " constraints with new tolerance of " << tolerance << "");
   request_update_constraint[axis] = true;
   request_update_constraint_tolerance[axis] = tolerance;
 }
