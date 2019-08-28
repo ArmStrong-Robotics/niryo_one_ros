@@ -158,7 +158,7 @@ void InverseKinematic::Init(sensor_msgs::JointState& current_joint_state)
   for(int i=0; i<6; i++)
   {
     request_update_constraint[i] = true;
-    request_update_constraint_tolerance[i] = 0.001;
+    request_update_constraint_tolerance[i] = 0.0;
   }
   UpdateAxisConstraints();
 }

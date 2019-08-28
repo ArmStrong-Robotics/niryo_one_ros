@@ -162,7 +162,7 @@ def calibrate():
     message="Info: Calibration"
     print message
     try:
-        orthopus_webapp.niryo_api.calibrate_auto()
+        orthopus_webapp.niryo_api.calibrate_manual()
         data = {"message":message}
         print "[ OK ] finished !"
         return jsonify(data)
