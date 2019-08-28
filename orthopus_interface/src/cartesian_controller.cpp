@@ -9,7 +9,8 @@
 
 #define RATE 10
 #define TOOL_ID_GRIPPER_1 11
-#define INIT_TIME 2
+#define TOOL_ID_GRIPPER_2 12
+#define INIT_TIME 1
 
 namespace cartesian_controller
 {
@@ -31,7 +32,7 @@ CartesianController::CartesianController()
   ros::ServiceServer enable_service = n_.advertiseService("/niryo_one/joystick_interface/enable",
                                   &CartesianController::enableCB, this);
   
-  tool_controller_.setToolId(TOOL_ID_GRIPPER_1);
+  tool_controller_.setToolId(TOOL_ID_GRIPPER_2);
   // Wait for initial messages
   ROS_INFO("Waiting for first joint msg.");
   ros::topic::waitForMessage<sensor_msgs::JointState>("joint_states");
@@ -46,15 +47,15 @@ CartesianController::CartesianController()
     cartesian_velocity_desired[i] = 0.0;
   }
 
-//   ROS_INFO("Initialize robot position");
-//   // initialize robot in zero position
-//   while (ros::ok())
-//   {
-//     ros::spinOnce();
-//     sendInitCommand();
-//     ros::Duration(INIT_TIME + 1.0).sleep();
-//     break;
-//   }
+  ROS_INFO("Initialize robot position");
+  // initialize robot in zero position
+  while (ros::ok())
+  {
+    ros::spinOnce();
+    sendInitCommand();
+    ros::Duration(INIT_TIME + 1.0).sleep();
+    break;
+  }
 
   ros::spinOnce();
   ik_ = new InverseKinematic(debug_pub_, debug_des_pub_);
@@ -149,7 +150,7 @@ void CartesianController::jointStatesCB(const sensor_msgs::JointStateConstPtr& m
 void CartesianController::dxDesCB(const geometry_msgs::TwistStampedPtr& msg)
 {
 //   ROS_DEBUG_STREAM("dxDesCB");
-  for(int i=0; i<7;i++)
+  for(int i=0; i<6;i++)
   {
     cartesian_velocity_desired[i] = 0.0;
   }
@@ -160,33 +161,58 @@ void CartesianController::dxDesCB(const geometry_msgs::TwistStampedPtr& msg)
     cartesian_velocity_desired[1] = msg->twist.linear.y;
     cartesian_velocity_desired[2] = msg->twist.linear.z;
 
-    tf2::Quaternion converted_quaternion;
-    converted_quaternion.setRPY(msg->twist.angular.x, msg->twist.angular.y, msg->twist.angular.z);
-    
-    cartesian_velocity_desired[3] = converted_quaternion.getW();
-    cartesian_velocity_desired[4] = converted_quaternion.getX();
-    cartesian_velocity_desired[5] = converted_quaternion.getY();
-    cartesian_velocity_desired[6] = converted_quaternion.getZ();
-    if(cartesian_velocity_desired[4] == 0 && cartesian_velocity_desired[5] == 0 && cartesian_velocity_desired[6] == 0)
+    cartesian_velocity_desired[3] = msg->twist.angular.x;
+    cartesian_velocity_desired[4] = msg->twist.angular.y;
+    cartesian_velocity_desired[5] = msg->twist.angular.z;
+
+    for(int i =0; i<3;i++)
     {
-        cartesian_velocity_desired[3] = 0;
-    }
-    
-    for(int i=0; i<7;i++)
-    {
-      if(i<3)
+      if(cartesian_velocity_desired[i] != 0)
       {
-        if(cartesian_velocity_desired[i] != 0)
-        {
-          ik_->UpdateAxisConstraints(i, 1.0);      
-        }
-        else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
-        {
-          ik_->UpdateAxisConstraints(i, 0.005);
-        }
+        ik_->RequestUpdateAxisConstraints(i, 1.0);
+      }
+      else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
+      {
+        ik_->RequestUpdateAxisConstraints(i, 0.001);
       }
       cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
-    } 
+    }
+    for(int i =3; i<6;i++)
+    {
+      if(cartesian_velocity_desired[i] != 0)
+      {
+//         if(i==3)
+//         {
+//           ik_->RequestUpdateAxisConstraints(5,1.0);
+//         }
+//         else if(i==4)
+//         {
+//           ik_->RequestUpdateAxisConstraints(3,1.0);
+//         }        
+//         else if(i==5)
+//         {
+//           ik_->RequestUpdateAxisConstraints(4,1.0);
+//         }
+        ik_->RequestUpdateAxisConstraints(i,1.0);
+      }
+      else if(cartesian_velocity_desired[i] == 0 && cartesian_velocity_desired_prev[i] != 0)
+      {
+//         if(i==3)
+//         {
+//         ik_->RequestUpdateAxisConstraints(5, 0.0);
+//         }
+//         else if(i==4)
+//         {
+//         ik_->RequestUpdateAxisConstraints(3, 0.0);
+//         }
+//         else if(i==5)
+//         {
+//         ik_->RequestUpdateAxisConstraints(4, 0.0);
+//         }
+        ik_->RequestUpdateAxisConstraints(i, 0.0);
+      }
+      cartesian_velocity_desired_prev[i] = cartesian_velocity_desired[i];
+    }
   }
 }
 

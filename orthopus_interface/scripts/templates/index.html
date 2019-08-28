@@ -46,7 +46,15 @@
           <div class="col col-xs-12">
             <a href=# id=linear_z_pos><button type="button" class="btn btn-primary">Z+</button></a>
           </div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_x_pos><button type="button" class="btn btn-info">rotX+</button></a>
+          </div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_x_neg><button type="button" class="btn btn-info">rotX-</button></a>
+          </div>
+
           <div class="w-100"></div>
+          
           <div class="col col-xs-12">       
             <a href=# id=linear_y_pos><button type="button" class="btn btn-primary">Y+</button></a>
           </div>
@@ -55,7 +63,15 @@
             <a href=# id=linear_y_neg><button type="button" class="btn btn-primary">Y-</button></a>
           </div>
           <div class="col col-xs-12"></div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_y_pos><button type="button" class="btn btn-info">rotY+</button></a>
+          </div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_y_neg><button type="button" class="btn btn-info">rotY-</button></a>
+          </div>
+
           <div class="w-100"></div>
+          
           <div class="col col-xs-12"></div>
           <div class="col col-xs-12">
             <a href=# id=linear_x_neg><button type="button" class="btn btn-primary">X-</button></a>
@@ -64,6 +80,13 @@
           <div class="col col-xs-12">
             <a href=# id=linear_z_neg><button type="button" class="btn btn-primary">Z-</button></a>
           </div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_z_pos><button type="button" class="btn btn-info">rotZ+</button></a>
+          </div>
+          <div class="col col-xs-12">
+            <a href=# id=angular_z_neg><button type="button" class="btn btn-info">rotZ-</button></a>
+          </div>
+
         </div>
         
         <h3>Useful positions</h3>
@@ -111,7 +134,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
     <script type="text/javascript">
-        $(function() {
+          function set_value(name, value){
+            $.getJSON('/set_value?name='+name+'&value='+value,
+                function(data) {
+                    console.log(data);
+                });         
+          }
+          
+        $(function() {   
             $('#cartesian_enable_switch')
                 .on("change", function() {
                     var state =  $('#cartesian_enable_switch')[0].checked;                    
@@ -171,101 +201,54 @@
                 }); 
             
             $('a#linear_x_pos')
-                .mousedown(function() {
-                    $.getJSON('/linear_x_pos',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;                    
-                })               
-                .mouseup(function() {
-                    $.getJSON('/reset_x',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
-                
+                .mousedown(function(){set_value("linear_x","+1.0");})
+                .mouseup(function(){set_value("linear_x","0.0");});
+            
             $('a#linear_x_neg')
-                .mousedown(function() {
-                    $.getJSON('/linear_x_neg',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                })
-                .mouseup(function() {
-                    $.getJSON('/reset_x',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
+                .mousedown(function(){set_value("linear_x","-1.0");})
+                .mouseup(function(){set_value("linear_x","0.0");});
+                
             $('a#linear_y_pos')
-                .mousedown(function() {
-                    $.getJSON('/linear_y_pos',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                })
-                .mouseup(function() {
-                    $.getJSON('/reset_y',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
-                
+                .mousedown(function(){set_value("linear_y","+1.0");})
+                .mouseup(function(){set_value("linear_y","0.0");});
+            
             $('a#linear_y_neg')
-                .mousedown(function() {
-                    $.getJSON('/linear_y_neg',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                })
-                .mouseup(function() {
-                    $.getJSON('/reset_y',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
-                
+                .mousedown(function(){set_value("linear_y","-1.0");})
+                .mouseup(function(){set_value("linear_y","0.0");});
                 
             $('a#linear_z_pos')
-                .mousedown(function() {
-                    $.getJSON('/linear_z_pos',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                })
-                .mouseup(function() {
-                    $.getJSON('/reset_z',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
+                .mousedown(function(){set_value("linear_z","+1.0");})
+                .mouseup(function(){set_value("linear_z","0.0");});
+            
             $('a#linear_z_neg')
-                .mousedown(function() {
-                    $.getJSON('/linear_z_neg',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                })
-                .mouseup(function() {
-                    $.getJSON('/reset_z',
-                        function(data) {
-                            console.log(data);
-                        });
-                    return false;
-                });
+                .mousedown(function(){set_value("linear_z","-1.0");})
+                .mouseup(function(){set_value("linear_z","0.0");});
             
-            
+            $('a#angular_x_pos')
+                .mousedown(function(){set_value("angular_x","+1.0");})
+                .mouseup(function(){set_value("angular_x","0.0");});
+                
+            $('a#angular_x_neg')
+                .mousedown(function(){set_value("angular_x","-1.0");})
+                .mouseup(function(){set_value("angular_x","0.0");});
+                            
+            $('a#angular_y_pos')
+                .mousedown(function(){set_value("angular_y","+1.0");})
+                .mouseup(function(){set_value("angular_y","0.0");});
+                
+            $('a#angular_y_neg')
+                .mousedown(function(){set_value("angular_y","-1.0");})
+                .mouseup(function(){set_value("angular_y","0.0");});
+                
+            $('a#angular_z_pos')
+                .mousedown(function(){set_value("angular_z","+1.0");})
+                .mouseup(function(){set_value("angular_z","0.0");});
+                
+            $('a#angular_z_neg')
+                .mousedown(function(){set_value("angular_z","-1.0");})
+                .mouseup(function(){set_value("angular_z","0.0");});
+                
+                
             $('a#calibrate').on("click",function() {
                 $.getJSON('/calibrate.json',
                     function(data) {

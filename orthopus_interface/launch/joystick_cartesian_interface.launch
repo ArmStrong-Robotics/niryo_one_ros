@@ -31,20 +31,20 @@
     </group>
     
     <node name="cartesian_controller" pkg="orthopus_interface" type="cartesian_controller" output="screen" respawn="false" >
-        <param name="alpha_1" type="double" value="10.0" />
-        <param name="alpha_2" type="double" value="10.0" />
-        <param name="alpha_3" type="double" value="10.0" />
-        <param name="alpha_4" type="double" value="10.0" />
-        <param name="alpha_5" type="double" value="10.0" />
-        <param name="alpha_6" type="double" value="10.0" />
-        <param name="alpha_7" type="double" value="10.0" />
+        <param name="alpha_1" type="double" value="1.0" />
+        <param name="alpha_2" type="double" value="1.0" />
+        <param name="alpha_3" type="double" value="1.0" />
+        <param name="alpha_4" type="double" value="1.0" />
+        <param name="alpha_5" type="double" value="1.0" />
+        <param name="alpha_6" type="double" value="1.0" />
+        <param name="alpha_7" type="double" value="1.0" />
         
-        <param name="beta_1" type="double" value="1e-1" />
-        <param name="beta_2" type="double" value="1e-1" />
-        <param name="beta_3" type="double" value="1e-1" />
-        <param name="beta_4" type="double" value="1e-1" />
-        <param name="beta_5" type="double" value="1e-1" />
-        <param name="beta_6" type="double" value="1e-1" />
+        <param name="beta_1" type="double" value="0.1" />
+        <param name="beta_2" type="double" value="0.1" />
+        <param name="beta_3" type="double" value="0.1" />
+        <param name="beta_4" type="double" value="0.1" />
+        <param name="beta_5" type="double" value="0.1" />
+        <param name="beta_6" type="double" value="0.1" />
         
         
       <!--      Test without cartesian position control  
@@ -58,9 +58,9 @@
         <param name="gamma_1" type="double" value="0.0" />
         <param name="gamma_2" type="double" value="0.0" />
         <param name="gamma_3" type="double" value="0.0" />
-        <param name="gamma_4" type="double" value="5000.0" />
-        <param name="gamma_5" type="double" value="5000.0" />
-        <param name="gamma_6" type="double" value="5000.0" />
-        <param name="gamma_7" type="double" value="5000.0" />
+        <param name="gamma_4" type="double" value="0.0" />
+        <param name="gamma_5" type="double" value="0.0" />
+        <param name="gamma_6" type="double" value="0.0" />
+        <param name="gamma_7" type="double" value="0.0" />
     </node>
 </launch>

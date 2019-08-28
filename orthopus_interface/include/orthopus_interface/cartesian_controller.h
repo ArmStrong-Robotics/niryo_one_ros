@@ -58,8 +58,8 @@ private:
   geometry_msgs::TwistStamped dx_des_;
 
   sensor_msgs::JointState current_joint_state;
-  double cartesian_velocity_desired[7];
-  double cartesian_velocity_desired_prev[7];
+  double cartesian_velocity_desired[6];
+  double cartesian_velocity_desired_prev[6];
   bool gripper_state_;
 };
 }

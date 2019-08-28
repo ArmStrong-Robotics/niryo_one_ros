@@ -33,6 +33,9 @@ class OrthopusWebApp(threading.Thread):
       self.X_AXIS = 4
       self.Y_AXIS = 0
       self.Z_AXIS = 1
+      self.X_ROT_AXIS = 7
+      self.Y_ROT_AXIS = 6
+      self.Z_ROT_AXIS = 3
       
     def run(self):
       while not rospy.is_shutdown():
@@ -54,6 +57,18 @@ class OrthopusWebApp(threading.Thread):
     def setZ(self, value):
       with self._lock:
         self.axes[self.Z_AXIS] = value * self.speed_factor;
+                                
+    def setRotX(self, value):
+      with self._lock:
+        self.axes[self.X_ROT_AXIS] = value * self.speed_factor;
+            
+    def setRotY(self, value):
+      with self._lock:
+        self.axes[self.Y_ROT_AXIS] = value * self.speed_factor;
+           
+    def setRotZ(self, value):
+      with self._lock:
+        self.axes[self.Z_ROT_AXIS] = value * self.speed_factor;
         
     def updateSpeedFactor(self, speed_factor):
       with self._lock:
@@ -120,72 +135,27 @@ def speed_factor():
     orthopus_webapp.updateSpeedFactor(speed_factor)
     data = {"message":message, "speed_factor":speed_factor}
     return jsonify(data)
-      
-@app.route("/linear_x_pos")
-def linear_x_pos():
-    message="Info: Linear X position"
-    print message
-    orthopus_webapp.setX(1)
-    data = {"message":message}
-    return jsonify(data)
-@app.route("/linear_x_neg")
-def linear_x_neg():
-    message="Info: Linear X position"
-    print message
-    orthopus_webapp.setX(-1)
-    data = {"message":message}
-    return jsonify(data)
-@app.route("/reset_x")
-def reset_x():
-    message="Info: Reset X position"
-    print message
-    orthopus_webapp.setX(0)
-    data = {"message":message}
-    return jsonify(data)
     
-@app.route("/linear_y_pos")
-def linear_y_pos():
-    message="Info: Linear Y position"
+@app.route("/set_value")
+def set_value():
+    name = request.args.get('name', type = str)
+    value = float(request.args.get('value', type = str))
+    message="Info: Set "+name+" to "+str(value)
     print message
-    orthopus_webapp.setY(1)
+    if(name=="linear_x"):
+      orthopus_webapp.setX(value)
+    elif(name=="linear_y"):
+      orthopus_webapp.setY(value)
+    elif(name=="linear_z"):
+      orthopus_webapp.setZ(value)
+    elif(name=="angular_x"):
+      orthopus_webapp.setRotX(value)
+    elif(name=="angular_y"):
+      orthopus_webapp.setRotY(value)
+    elif(name=="angular_z"):
+      orthopus_webapp.setRotZ(value)
     data = {"message":message}
-    return jsonify(data)
-@app.route("/linear_y_neg")
-def linear_y_neg():
-    message="Info: Linear Y position"
-    print message
-    orthopus_webapp.setY(-1)
-    data = {"message":message}
-    return jsonify(data)
-@app.route("/reset_y")
-def reset_y():
-    message="Info: Reset Y position"
-    print message
-    orthopus_webapp.setY(0)
-    data = {"message":message}
-    return jsonify(data)
-        
-@app.route("/linear_z_pos")
-def linear_z_pos():
-    message="Info: Linear Z position"
-    print message
-    orthopus_webapp.setZ(1)
-    data = {"message":message}
-    return jsonify(data)
-@app.route("/linear_z_neg")
-def linear_z_neg():
-    message="Info: Linear Z position"
-    print message
-    orthopus_webapp.setZ(-1)
-    data = {"message":message}
-    return jsonify(data)
-@app.route("/reset_z")
-def reset_z():
-    message="Info: Reset Z position"
-    print message
-    orthopus_webapp.setZ(0)
-    data = {"message":message}
-    return jsonify(data)
+    return jsonify(data) 
     
 @app.route("/calibrate.json")
 def calibrate():
